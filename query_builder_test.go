@@ -15,11 +15,13 @@ type User struct {
 
 func TestIsStructChecker(t *testing.T) {
 	Convey("Given a struct, should return true", t, func() {
+		PK := uint32(1)
 		user := &User{}
 		So(IsStruct(user), ShouldBeTrue)
 
-		type Example struct {
-		}
+		user = &User{ID: PK, Username: "john_doe"}
+		So(IsStruct(user), ShouldBeTrue)
+		type Example struct{}
 		ex := Example{}
 		So(IsStruct(ex), ShouldBeTrue)
 	})
@@ -29,25 +31,41 @@ func TestIsStructChecker(t *testing.T) {
 
 		var user interface{}
 		So(IsStruct(user), ShouldBeFalse)
+		So(IsStruct(42), ShouldBeFalse)
 	})
 }
 
 func TestQueryBuilderUpdate(t *testing.T) {
 	Convey("Given a User struct", t, func() {
+		PK := uint32(1)
+		newVal := "newVal"
 		Convey("when filled only username, should only update username and leave the rest unchanged", func() {
-			PK := uint32(1)
-			user := &User{ID: PK, Username: "john_doe"}
+			user := &User{ID: PK, Username: newVal}
 			tableName := "users"
 
 			expectedQuery := `UPDATE ` + tableName + ` SET username = ? WHERE id = ?`
 			expectedArgs := []interface{}{
-				user.Username,
+				newVal,
 				user.ID,
 			}
-			query, args, err := GenerateUpdateQuery(&user, tableName, "id")
-			So(query, ShouldEqual, expectedQuery)
-			So(args, ShouldEqual, expectedArgs...)
+			query, args, err := GenerateUpdateQuery(user, tableName, "id")
 			So(err, ShouldBeNil)
+			So(query, ShouldEqual, expectedQuery)
+			So(args, ShouldEqual, expectedArgs)
+		})
+		Convey("when filled only password, should only update password and leave the rest unchanged", func() {
+			user := &User{ID: PK, Password: newVal}
+			tableName := "users"
+
+			expectedQuery := `UPDATE ` + tableName + ` SET password = ? WHERE id = ?`
+			expectedArgs := []interface{}{
+				newVal,
+				user.ID,
+			}
+			query, args, err := GenerateUpdateQuery(user, tableName, "id")
+			So(err, ShouldBeNil)
+			So(query, ShouldEqual, expectedQuery)
+			So(args, ShouldEqual, expectedArgs)
 		})
 	})
 }
