@@ -69,3 +69,20 @@ func TestQueryBuilderUpdate(t *testing.T) {
 		})
 	})
 }
+
+func TestQueryBuilderGet(t *testing.T) {
+	Convey("Given a User struct", t, func() {
+		PK := uint32(1)
+		newVal := "newVal"
+		Convey("when given user struct, should get gorm tags in user struct", func() {
+			user := &User{ID: PK, Username: newVal}
+			field := `id, username, email, password`
+			tableName := "users"
+
+			expectedQuery := `SELECT ` + field + ` FROM ` + tableName + `;`
+			query,  err := GenerateGetQuery(user, tableName)
+			So(err, ShouldBeNil)
+			So(query, ShouldEqual, expectedQuery)
+		})
+	})
+}
