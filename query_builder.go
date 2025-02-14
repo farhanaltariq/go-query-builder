@@ -93,3 +93,41 @@ func GenerateUpdateQuery(model interface{}, table, identifier string) (query str
 
 	return q.String(), args, nil
 }
+
+// Generate get query only get fields of a model if the gorm tag given.
+// It generate raw SQL queries to perform the select.
+// ex.: SELCT column... FROM table;
+func GenerateGetQuery(model interface{}, table string) (query string, err error) {
+	if !IsStruct(model) {
+		return "", errors.New("model must be a struct")
+	}
+
+	updateCounter := 0
+	var q strings.Builder
+	q.WriteString("SELECT ")
+
+	modelValue := reflect.ValueOf(model).Elem()
+
+	for i := 0; i < modelValue.NumField(); i++ {
+		fieldType := modelValue.Type().Field(i)
+
+		// Get the column name from the gorm tag
+		columnName := getColumnName(fieldType)
+
+		// Add non-zero fields to the query
+		if updateCounter > 0 {
+			q.WriteString(", ")
+		}
+		q.WriteString(columnName)
+		updateCounter++
+	}
+
+	// If no fields to update, return early
+	if updateCounter == 0 {
+		return "", errors.New("no fields to get")
+	}
+
+	q.WriteString(" FROM " + table + ";")
+
+	return q.String(), nil
+}
