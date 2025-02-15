@@ -2,6 +2,7 @@ package querybuilder
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -15,9 +16,9 @@ func IsStruct(in interface{}) bool {
 	v := reflect.ValueOf(in)
 	// If it's a pointer, check for nil pointer first
 	if v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return false
-		}
+		// if v.IsNil() {
+		// 	return false
+		// }
 
 		// Dereference pointer
 		v = v.Elem()
@@ -84,10 +85,6 @@ func GenerateUpdateQuery(model interface{}, table, identifier string) (query str
 		return "", nil, errors.New("no fields to update")
 	}
 
-	if updateValueIdentifier == nil {
-		return "", nil, errors.New("update identiifier must be set")
-	}
-
 	q.WriteString(" WHERE " + identifier + " = ?")
 	args = append(args, updateValueIdentifier)
 
@@ -96,38 +93,56 @@ func GenerateUpdateQuery(model interface{}, table, identifier string) (query str
 
 // Generate get query only get fields of a model if the gorm tag given.
 // It generate raw SQL queries to perform the select.
+// Put some data to model struct to add WHERE clauses
 // ex.: SELCT column... FROM table;
+// ex.: SELCT column... FROM table WHERE ...;
 func GenerateGetQuery(model interface{}, table string) (query string, err error) {
 	if !IsStruct(model) {
 		return "", errors.New("model must be a struct")
 	}
 
-	updateCounter := 0
-	var q strings.Builder
+	getCounter := 0
+	whereCounter := 0
+	var q, w strings.Builder
 	q.WriteString("SELECT ")
+	w.WriteString("WHERE ")
 
 	modelValue := reflect.ValueOf(model).Elem()
 
 	for i := 0; i < modelValue.NumField(); i++ {
+		field := modelValue.Field(i)
 		fieldType := modelValue.Type().Field(i)
 
 		// Get the column name from the gorm tag
 		columnName := getColumnName(fieldType)
-
+		if columnName == "" {
+			continue
+		}
+		if !reflect.DeepEqual(field.Interface(), reflect.Zero(field.Type()).Interface()) {
+			if whereCounter > 0 {
+				w.WriteString(" AND ")
+			}
+			w.WriteString(columnName + " = ")
+			w.WriteString(fmt.Sprint(field.Interface()))
+			whereCounter++
+		}
 		// Add non-zero fields to the query
-		if updateCounter > 0 {
+		if getCounter > 0 {
 			q.WriteString(", ")
 		}
 		q.WriteString(columnName)
-		updateCounter++
+		getCounter++
 	}
 
 	// If no fields to update, return early
-	if updateCounter == 0 {
-		return "", errors.New("no fields to get")
+	if getCounter == 0 {
+		return "", errors.New("struct must have gorm tags")
 	}
 
-	q.WriteString(" FROM " + table + ";")
+	q.WriteString(" FROM " + table)
+	if whereCounter != 0 {
+		q.WriteString(" " + w.String())
+	}
 
 	return q.String(), nil
 }
