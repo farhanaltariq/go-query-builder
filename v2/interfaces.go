@@ -9,9 +9,6 @@ import (
 	"query-builder/utils"
 )
 
-
-// --- QueryBuilder Implementation ---
-
 type QueryBuilder struct {
 	*modes
 	query      string

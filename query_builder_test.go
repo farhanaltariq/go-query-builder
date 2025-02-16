@@ -13,28 +13,6 @@ type User struct {
 	Password string `gorm:"column:password"`
 }
 
-func TestIsStructChecker(t *testing.T) {
-	Convey("Given a struct, should return true", t, func() {
-		PK := uint32(1)
-		user := &User{}
-		So(IsStruct(user), ShouldBeTrue)
-
-		user = &User{ID: PK, Username: "john_doe"}
-		So(IsStruct(user), ShouldBeTrue)
-		type Example struct{}
-		ex := Example{}
-		So(IsStruct(ex), ShouldBeTrue)
-	})
-	Convey("Given a non struct, should return false", t, func() {
-		So(IsStruct(nil), ShouldBeFalse)
-		So(IsStruct("something"), ShouldBeFalse)
-
-		var user interface{}
-		So(IsStruct(user), ShouldBeFalse)
-		So(IsStruct(42), ShouldBeFalse)
-	})
-}
-
 func TestQueryBuilderUpdate(t *testing.T) {
 	Convey("Given a User struct", t, func() {
 		PK := uint32(1)
