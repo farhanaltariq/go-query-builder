@@ -43,8 +43,8 @@ func TestCombination(t *testing.T) {
 	queryBuilder := NewQueryBuilder()
 	Convey("SELECT .. FROM ... WHERE ... DIR", t, func() {
 		Convey("Using string", func() {
-			q := queryBuilder.From("custom_tablename").Select("`id`, `username`, `email`, `password`").Desc("email").Where("`id` = 1")
-			So(q.Raw(), ShouldEqual, "SELECT `id`, `username`, `email`, `password` FROM custom_tablename WHERE `id` = 1 ORDER BY `email` DESC;")
+			q := queryBuilder.From("custom_tablename").Select("id").Desc("email").Where("`id` = 1")
+			So(q.Raw(), ShouldEqual, "SELECT `id` FROM custom_tablename WHERE `id` = 1 ORDER BY `email` DESC;")
 			So(q.Error(), ShouldBeNil)
 		})
 		Convey("Using struct", func() {
