@@ -1,4 +1,4 @@
-package new
+package qBuilder
 
 type modes struct {
 	mode string
@@ -17,6 +17,6 @@ type direction struct {
 }
 
 const (
-	DIR_ASCENDING   = "ASC"
+	DIR_ASCENDING  = "ASC"
 	DIR_DESCENDING = "DESC"
 )
