@@ -116,17 +116,6 @@ func TestQueryBuilderGet(t *testing.T) {
 			So(query, ShouldEqual, expectedQuery)
 		})
 	})
-	Convey("Given a struct that does not have gorm tag", t, func() {
-		user := &struct {
-			ID   uint32
-			Name string
-		}{}
-		tableName := "users"
-
-		query, err := GenerateGetQuery(user, tableName)
-		So(err, ShouldNotBeNil)
-		So(query, ShouldBeEmpty)
-	})
 	Convey("when given invalid input, should return error", t, func() {
 		tableName := "users"
 		query, err := GenerateGetQuery("invalidtext", tableName)

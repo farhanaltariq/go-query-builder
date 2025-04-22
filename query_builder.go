@@ -13,7 +13,7 @@ import (
 // It generate raw SQL queries to perform the update.
 // ex.: UPDATE table SET model... WHERE identifier = ?
 func GenerateUpdateQuery(model interface{}, table, identifier string) (query string, args []interface{}, err error) {
-	if !utils.IsStruct(model) {
+	if !utils.IsPointerToStruct(model) {
 		return "", nil, errors.New("model must be a struct")
 	}
 
@@ -66,7 +66,7 @@ func GenerateUpdateQuery(model interface{}, table, identifier string) (query str
 // ex.: SELCT column... FROM table;
 // ex.: SELCT column... FROM table WHERE ...;
 func GenerateGetQuery(model interface{}, table string) (query string, err error) {
-	if !utils.IsStruct(model) {
+	if !utils.IsPointerToStruct(model) {
 		return "", errors.New("model must be a struct")
 	}
 
@@ -84,9 +84,6 @@ func GenerateGetQuery(model interface{}, table string) (query string, err error)
 
 		// Get the column name from the gorm tag
 		columnName := utils.GetColumnName(fieldType)
-		if columnName == "" {
-			continue
-		}
 		if !reflect.DeepEqual(field.Interface(), reflect.Zero(field.Type()).Interface()) {
 			if whereCounter > 0 {
 				w.WriteString(" AND ")
@@ -101,11 +98,6 @@ func GenerateGetQuery(model interface{}, table string) (query string, err error)
 		}
 		q.WriteString(columnName)
 		getCounter++
-	}
-
-	// If no fields to update, return early
-	if getCounter == 0 {
-		return "", errors.New("struct must have gorm tags")
 	}
 
 	q.WriteString(From(table))

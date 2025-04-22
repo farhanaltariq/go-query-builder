@@ -26,7 +26,7 @@ func TestSelect(t *testing.T) {
 				hello string
 			}
 			query := queryBuilder.Select(&CustomStruct{})
-			So(query.error, ShouldNotBeNil)
+			So(query.error, ShouldBeNil)
 		})
 	})
 }

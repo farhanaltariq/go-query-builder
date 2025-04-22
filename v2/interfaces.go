@@ -46,7 +46,7 @@ func (db *QueryBuilder) Select(model interface{}) *QueryBuilder {
 		return db
 	}
 
-	if !utils.IsStruct(model) {
+	if !utils.IsPointerToStruct(model) {
 		db.error = errors.New("model must be a pointer to struct or a string")
 		return db
 	}
@@ -62,9 +62,6 @@ func (db *QueryBuilder) Select(model interface{}) *QueryBuilder {
 
 		// Get the column name from the gorm tag
 		columnName := utils.GetColumnName(fieldType)
-		if columnName == "" {
-			continue
-		}
 		sanitized, err := utils.SanitizeIdentifier(columnName)
 		if err != nil {
 			db.error = err
@@ -109,7 +106,7 @@ func (db *QueryBuilder) Where(model interface{}) *QueryBuilder {
 		db.whereQuery = &wq
 		return db
 	}
-	if !utils.IsStruct(model) {
+	if !utils.IsPointerToStruct(model) {
 		db.error = errors.New("model must be a pointer to struct or a string")
 		return db
 	}
@@ -124,8 +121,8 @@ func (db *QueryBuilder) Where(model interface{}) *QueryBuilder {
 
 		// Get the column name from the gorm tag
 		columnName := utils.GetColumnName(fieldType)
-		if columnName == "" || reflect.DeepEqual(field.Interface(), reflect.Zero(field.Type()).Interface()) {
-			continue // Skip fields without a gorm tag or with zero value.
+		if reflect.DeepEqual(field.Interface(), reflect.Zero(field.Type()).Interface()) {
+			continue // Skip fields with zero value.
 		}
 		sanitized, err := utils.SanitizeIdentifier(columnName)
 		if err != nil {
